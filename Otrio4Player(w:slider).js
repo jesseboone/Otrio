@@ -89,7 +89,7 @@ function GameSetup() {
   ];
 
   players = [];
-  for (var i = 0; i < slider.value(); i++) {
+  for (var i = 1; i <= slider.value(); i++) {
     players.push(i);
   }
   currentPlayer = 0;
