@@ -42,7 +42,7 @@ function GameSetup() {
   let available2 = [ 18,19,20,21,22,23,24,25,26 ];
 
   // game board
-  let otrio_board = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
+  otrio_board = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
 
   // remaking player array based on slider value
   players = [];
