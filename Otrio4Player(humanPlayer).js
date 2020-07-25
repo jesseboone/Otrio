@@ -74,7 +74,7 @@ function setup() {
 }
 
 function NewGame() {
-  print(slider.value());
+  print("New game with " + slider.value() + " players.");
   GameSetup();
   loop();
 }
@@ -393,7 +393,7 @@ function draw() {
 
 // check for winner and stop if found
   let result = checkWinner(spot);
-  print(result);
+  // print(result);
   if (result != null) {
     noLoop();
     let resultP = createP('');
