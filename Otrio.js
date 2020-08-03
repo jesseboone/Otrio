@@ -4,11 +4,12 @@
 // Hopefully AI cpu players to follow...
 
 // each players pieces
-// let P1Pieces = [0,0,0,1,1,1,2,2,2];
-let P1Pieces = [3,3,3];
-let P2Pieces = [0,0,0,1,1,1,2,2,2];
-let P3Pieces = [0,0,0,1,1,1,2,2,2];
-let P4Pieces = [0,0,0,1,1,1,2,2,2];
+let P1Pieces = [3, 3, 3];
+let ai_pieces = [
+  [0, 0, 0, 1, 1, 1, 2, 2, 2],
+  [0, 0, 0, 1, 1, 1, 2, 2, 2],
+  [0, 0, 0, 1, 1, 1, 2, 2, 2]
+];
 
 // Available spots on each level of board
 let available0 = [  0, 1, 2, 3, 4, 5, 6, 7, 8 ];
@@ -51,13 +52,14 @@ let result;
 
 
 function GameSetup() {
-
   // each players pieces
   // P1Pieces = [0,0,0,1,1,1,2,2,2];
   P1Pieces = [3,3,3];
-  P2Pieces = [0,0,0,1,1,1,2,2,2];
-  P3Pieces = [0,0,0,1,1,1,2,2,2];
-  P4Pieces = [0,0,0,1,1,1,2,2,2];
+  ai_pieces = [
+    [0, 0, 0, 1, 1, 1, 2, 2, 2],
+    [0, 0, 0, 1, 1, 1, 2, 2, 2],
+    [0, 0, 0, 1, 1, 1, 2, 2, 2]
+  ];
 
   // Available spots on each level of board
   available0 = [  0, 1, 2, 3, 4, 5, 6, 7, 8 ];
@@ -376,11 +378,9 @@ let spot = -1;
 // find random place to go
 function nextTurn() {
   // console.log('next turn called for player: ' + currentPlayer);
-  let piece = null;
-  // if (currentPlayer == 0); 
-  if (currentPlayer == 1) piece = P2Pieces.splice(floor(random(P2Pieces.length)), 1);
-  else if (currentPlayer == 2) piece = P3Pieces.splice(floor(random(P3Pieces.length)), 1);
-  else if (currentPlayer == 3) piece = P4Pieces.splice(floor(random(P4Pieces.length)), 1);
+  let index = floor(random(ai_pieces[currentPlayer - 1].length))
+  let piece = ai_pieces[currentPlayer - 1].splice(index, 1);
+
   // can piece ever equal null here? I dont think so but check later (apparently it can [check winner not working atm though])
   if (piece == '') {
     console.log('Game over, out of pieces');
@@ -450,13 +450,13 @@ function mousePressed() {
 }
 
 function draw() {
-// set drawing settings
+  // set drawing settings
   background(255);
   let w = width / 3;
   let h = height / 3;
   strokeWeight(2);
 
-// Draw board
+  // Draw board
   line(w, 0, w, height);
   line(w * 2, 0, w * 2, height);
   line(0, h, width, h);
@@ -477,7 +477,7 @@ function draw() {
         else if (i<27) {ellipse(x, y, w / 3.1);}
   }
 
-// check for winner and stop if found
+  // check for winner and stop if found
   // logBoard();
   // print("In draw and spot[0]: " + spot[0] + " is a " + typeof spot[0]);
   
