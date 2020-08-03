@@ -20,7 +20,7 @@ let available2 = [ 18,19,20,21,22,23,24,25,26 ];
 let otrio_board = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
 
 // players
-let players = [1, 2, 3, 4];
+let players = [1, 2];
 
 // used for distance formula later
 let centerXs;
@@ -47,11 +47,12 @@ let ringVals = [
   ]
 ];
 
-  // ?
+// ?
 let result;
 
+let resultP; // <p> element for displaying winner
 
-function GameSetup() {
+function gameSetup() {
   // each players pieces
   P1Pieces = [3,3,3];
   ai_pieces = [
@@ -96,18 +97,19 @@ function setup() {
   centerXs = [w6,w6*3,w6*5];
   centerYs = [h6,h6*3,h6*5];
   frameRate(5);
-  slider = createSlider(1, 4);
+  slider = createSlider(1, 4, 2);
   slider.position(width+10, height+10);
   slider.style('width', '80px');
   button = createButton('New Game');
   button.position(width+10, height+50);
-  button.mousePressed(NewGame);
-  //currentPlayer = floor(random(players.length));
+  button.mousePressed(newGame);
+  resultP = createP('');
 }
 
-function NewGame() {
+function newGame() {
   print("New game with " + slider.value() + " players.");
-  GameSetup();
+  resultP.html('');
+  gameSetup();
   loop();
 }
 
@@ -116,11 +118,9 @@ function equals3(a, b, c) {
 }
 
 function checkWinner(wentHere) { 
-  if (currentPlayer == 0) {
-    print("In checkWinner as currentPlayer 0");
-    print('And wentHere is: ' + wentHere + " of type " + typeof wentHere);
-    print("Board: " + otrio_board);
-  }
+  print("In checkWinner as currentPlayer " + currentPlayer);
+  print('And wentHere is: ' + wentHere + " of type " + typeof wentHere);
+  print("Board: " + otrio_board);
   // console.log(wentHere[0] + " is a " + typeof wentHere[0]);
   // made this function a switch statement and hardcoded each position's possible wins
   // then for each one there is only be about 5 to check and is much faster
@@ -462,18 +462,18 @@ function draw() {
   line(0, h * 2, width, h * 2);
 
   for (let i = 0; i < 27; i++) {
-        let x = w * (i%3) + w / 2; // i was k
-        let y = h * floor((i%9)/3) + h / 2; // i was j
-        let place = otrio_board[i];
-        // textSize(32);
-        if (place == players[0]) { fill(color('red'));} 
-        else if (place == players[1]) { fill(color('green'));}
-        else if (place == players[2]) { fill(color('blue'));}
-        else if (place == players[3]) { fill(color('purple'));}
-        else fill(color('white'));
-        if (i<9) {ellipse(x, y, w / 1.2);}
-        else if (i<18) {ellipse(x, y, w / 1.7);}
-        else if (i<27) {ellipse(x, y, w / 3.1);}
+    let x = w * (i%3) + w / 2; // i was k
+    let y = h * floor((i%9)/3) + h / 2; // i was j
+    let place = otrio_board[i];
+    // textSize(32);
+    if (place == players[0]) { fill(color('red'));} 
+    else if (place == players[1]) { fill(color('green'));}
+    else if (place == players[2]) { fill(color('blue'));}
+    else if (place == players[3]) { fill(color('purple'));}
+    else fill(color('white'));
+    if (i<9) {ellipse(x, y, w / 1.2);}
+    else if (i<18) {ellipse(x, y, w / 1.7);}
+    else if (i<27) {ellipse(x, y, w / 3.1);}
   }
 
   // check for winner and stop if found
@@ -483,7 +483,6 @@ function draw() {
   // print(result);
   if (result != null) {
     noLoop();
-    let resultP = createP('');
     resultP.style('font-size', '32pt');
     if (result == 'tie') {
       resultP.html("Tie!")
