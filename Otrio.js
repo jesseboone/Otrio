@@ -12,6 +12,11 @@ let ai_pieces = [
 ];
 
 // Available spots on each level of board
+/* let available = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  [9, 10, 11, 12, 13, 14, 15, 16, 17],
+  [18, 19, 20, 21, 22, 23, 24, 25, 26]
+] */
 let available0 = [  0, 1, 2, 3, 4, 5, 6, 7, 8 ];
 let available1 = [  9,10,11,12,13,14,15,16,17 ];
 let available2 = [ 18,19,20,21,22,23,24,25,26 ];
@@ -100,8 +105,8 @@ function setup() {
   createCanvas(600, 600);
   let w6 = width/6;
   let h6 = height/6;
-  centerXs = [w6,w6*3,w6*5];
-  centerYs = [h6,h6*3,h6*5];
+  let centerXs = [w6,w6*3,w6*5];
+  let centerYs = [h6,h6*3,h6*5];
 
   frameRate(5);
 
@@ -403,6 +408,25 @@ function getSpot(piece) {
   else if (piece == 2) return available2.splice(floor(random(available2.length)), 1);
 }
 
+function minimax(spot) {
+  /*
+   if leaf(n) or depth=0 return evaluate(n)
+   if n is a max node
+      v := L
+      for each child of n
+         v' := minimax (child,d-1)
+         if v' > v, v:= v'
+      return v
+   if n is a min node
+      v := W
+      for each child of n
+         v' := minimax (child,d-1)
+         if v' < v, v:= v'
+      return v
+  */
+  return spot;
+}
+
 let spot = -1;
 // find random place to go
 function nextTurn() {
@@ -415,11 +439,23 @@ function nextTurn() {
       console.log('Game over, out of pieces');
       noLoop();
     }
-    // print("Pre getSpot spot is: " + spot);
+    
     spot = getSpot(piece);
-    // print("Post getSpot spot is: " + spot);
-    //if (spot == null) {remove();}
+  } else if (radio.selected() == 'minimax') {
+    let bestSpot = null;
+    let bestScore = Number.MIN_VALUE;
+    let availableSpots = available0.concat(available1).concat(available2);
+    for (possibleSpot in availableSpots) {
+      score = minimax(possibleSpot);
+      if (score > bestScore) {
+        bestScore = score;
+        bestSpot = possibleSpot;
+      }
+    }
+
+    spot = bestSpot;
   }
+  
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
   result = checkWinner(spot);
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
