@@ -20,7 +20,7 @@ let available2 = [ 18,19,20,21,22,23,24,25,26 ];
 let otrio_board = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
 
 // players
-let players = [1, 2];
+let players = [1, 2, 3, 4];
 
 // used for distance formula later
 let centerXs;
@@ -53,7 +53,6 @@ let result;
 
 function GameSetup() {
   // each players pieces
-  // P1Pieces = [0,0,0,1,1,1,2,2,2];
   P1Pieces = [3,3,3];
   ai_pieces = [
     [0, 0, 0, 1, 1, 1, 2, 2, 2],
@@ -381,7 +380,6 @@ function nextTurn() {
   let index = floor(random(ai_pieces[currentPlayer - 1].length))
   let piece = ai_pieces[currentPlayer - 1].splice(index, 1);
 
-  // can piece ever equal null here? I dont think so but check later (apparently it can [check winner not working atm though])
   if (piece == '') {
     console.log('Game over, out of pieces');
     noLoop();
@@ -391,6 +389,7 @@ function nextTurn() {
   // print("Post getSpot spot is: " + spot);
   //if (spot == null) {remove();}
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
+
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
 }
 
