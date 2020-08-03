@@ -359,9 +359,24 @@ function checkWinner(wentHere) {
       break;
     default:
   }
+  // If all players are out of pieces, return 'tie'
+  let all_out = true;
+  if (P1Pieces[0] == 0 && P1Pieces[1] == 0 && P1Pieces[2] == 0) {
+    for (let i = 2; i <= slider.value(); i++) { // for each AI
+      if (ai_pieces[i-2].length > 0) { // if they have any remaining moves left
+        all_out = false;
+      }
+    }
+  } else {
+    all_out = false;
+  }
+  if (all_out) {
+    return 'tie';
+  }
+
   if ( (available0 == '') && (available1 == '') && (available2 == '') && (winner == null) ) {
     return 'tie';
-  } 
+  }
   else {
     return winner;
   } 
