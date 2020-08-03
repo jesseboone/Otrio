@@ -50,6 +50,8 @@ let ringVals = [
 // ?
 let result;
 
+let slider; // <input> element for selecting number of players
+let butotn; // <button> element for starting a new game
 let resultP; // <p> element for displaying winner
 
 function gameSetup() {
@@ -93,19 +95,25 @@ function logBoard() {
 function setup() {
   let text = createP('1: Red - 2: Green - 3: Blue - 4: Purple');
   text.style('font-size', '32pt');
+
   createCanvas(600, 600);
   let w6 = width/6;
   let h6 = height/6;
-  centerXs = [w6,w6*3,w6*5];
-  centerYs = [h6,h6*3,h6*5];
+  let centerXs = [w6,w6*3,w6*5];
+  let centerYs = [h6,h6*3,h6*5];
+
   frameRate(5);
+
   slider = createSlider(1, 4, 2);
   slider.position(width+10, height+10);
   slider.style('width', '80px');
+
   button = createButton('New Game');
   button.position(width+10, height+50);
   button.mousePressed(newGame);
+
   resultP = createP('');
+
 }
 
 function newGame() {
