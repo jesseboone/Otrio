@@ -75,6 +75,8 @@ function gameSetup() {
     players.push(i);
   }
   currentPlayer = 0;
+
+  result = null;
 }
 
 // mostly unneeded, used for bug fixes
@@ -389,7 +391,7 @@ function nextTurn() {
   // print("Post getSpot spot is: " + spot);
   //if (spot == null) {remove();}
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
-
+  result = checkWinner(spot);
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
 }
 
@@ -493,7 +495,6 @@ function draw() {
   } else {
     if (currentPlayer > 0) {
       nextTurn();
-      result = checkWinner(spot[0]);
     }
     else noLoop();
   }
