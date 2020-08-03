@@ -51,8 +51,9 @@ let ringVals = [
 let result;
 
 let slider; // <input> element for selecting number of players
-let butotn; // <button> element for starting a new game
+let button; // <button> element for starting a new game
 let resultP; // <p> element for displaying winner
+let radio; // <input> element for selecting AI strategy
 
 function gameSetup() {
   // each players pieces
@@ -99,8 +100,8 @@ function setup() {
   createCanvas(600, 600);
   let w6 = width/6;
   let h6 = height/6;
-  let centerXs = [w6,w6*3,w6*5];
-  let centerYs = [h6,h6*3,h6*5];
+  centerXs = [w6,w6*3,w6*5];
+  centerYs = [h6,h6*3,h6*5];
 
   frameRate(5);
 
@@ -114,6 +115,10 @@ function setup() {
 
   resultP = createP('');
 
+  radio = createRadio();
+  radio.option('random');
+  radio.option('minimax');
+  radio.selected('minimax');
 }
 
 function newGame() {
@@ -402,17 +407,19 @@ let spot = -1;
 // find random place to go
 function nextTurn() {
   // console.log('next turn called for player: ' + currentPlayer);
-  let index = floor(random(ai_pieces[currentPlayer - 1].length))
-  let piece = ai_pieces[currentPlayer - 1].splice(index, 1);
+  if (radio.selected() == 'random') {
+    let index = floor(random(ai_pieces[currentPlayer - 1].length))
+    let piece = ai_pieces[currentPlayer - 1].splice(index, 1);
 
-  if (piece == '') {
-    console.log('Game over, out of pieces');
-    noLoop();
+    if (piece == '') {
+      console.log('Game over, out of pieces');
+      noLoop();
+    }
+    // print("Pre getSpot spot is: " + spot);
+    spot = getSpot(piece);
+    // print("Post getSpot spot is: " + spot);
+    //if (spot == null) {remove();}
   }
-  // print("Pre getSpot spot is: " + spot);
-  spot = getSpot(piece);
-  // print("Post getSpot spot is: " + spot);
-  //if (spot == null) {remove();}
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
   result = checkWinner(spot);
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
