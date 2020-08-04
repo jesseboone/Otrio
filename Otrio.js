@@ -3,6 +3,9 @@
 // Human playable vs up to 3 cpu (random) players...
 // Hopefully AI cpu players to follow...
 
+// For observing pruning improvements
+let minimax_calls = [0, 0, 0, 0];
+
 // game board
 let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -409,6 +412,7 @@ function nextTurn() {
       }
     }
   } else if (radio.selected() == 'minimax') {
+    minimax_calls = [0, 0, 0, 0];
     let bestSpot = null;
     let bestScore = -Number.MIN_VALUE;
     let available = availableSpots(otrio_board);
@@ -419,14 +423,14 @@ function nextTurn() {
         let pieces_copy = deepCopy2DArray(pieces);
         pieces_copy[currentPlayer][floor(spot / 9)]--;
         let turn = (currentPlayer + 1) % players.length;
-        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 3);
+        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 2, -Number.MAX_VALUE, Number.MAX_VALUE);
         if (score > bestScore) {
           bestScore = score;
           bestSpot = available[i];
         }
       }
     }
-    print(minimax_calls);
+    print('minimax calls at each depth: ' + minimax_calls);
 
     spot = bestSpot;
     let piece = floor(spot / 9);

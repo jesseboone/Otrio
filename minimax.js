@@ -1,5 +1,3 @@
-let minimax_calls = {0: 0, 1: 0, 2: 0};
-
 function is_terminal_state(lastSpot, board, pieces) {
   /* 
   if all players are out of pieces
@@ -110,7 +108,7 @@ function evaluate(lastSpot, board, pieces, player) {
   }
 }
 
-function minimax(lastSpot, board, pieces, turn, player, depth) {
+function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
   /*
    * I'm sorry sober me
    *
@@ -130,7 +128,7 @@ function minimax(lastSpot, board, pieces, turn, player, depth) {
   
   let available = availableSpots(board);
   if (turn == player) { // max node
-    let score = -Number.MIN_VALUE;
+    let score = min;
     for (let i = 0; i < available.length; i++) {
       if (eligibleMove(available[i], board, pieces[turn])) {
         // create child gamestate
@@ -140,16 +138,18 @@ function minimax(lastSpot, board, pieces, turn, player, depth) {
         pieces_copy[currentPlayer][floor(available[i] / 9)]--;
         let next_turn = (currentPlayer + 1) % players.length;
         // find child score
-        let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1);
+        let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1, score, max);
         if (temp_score > score) {
           score = temp_score;
         }
+        if (score > max) {
+          return max;
+        }
       }
     }
-    if (score == Number.MIN_VALUE) print('minimax broke: score == min_value');
     return score;
   } else { // min node
-    let score = Number.MAX_VALUE;
+    let score = max;
     for (let i = 0; i < available.length; i++) {
       if (eligibleMove(available[i], board, pieces[turn])) {
         // create child gamestate
@@ -159,14 +159,15 @@ function minimax(lastSpot, board, pieces, turn, player, depth) {
         pieces_copy[currentPlayer][floor(available[i] / 9)]--;
         let next_turn = (currentPlayer + 1) % players.length;
         // find child score
-        let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1);
+        let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1, min, score);
         if (temp_score < score) {
           score = temp_score;
         }
-        // if v' < v, v := v'
+        if (score < min) {
+          return min;
+        }
       }
     }
-    if (score == Number.MAX_VALUE) print('minimax broke: score == max_value');
     return score;
   }
 }
