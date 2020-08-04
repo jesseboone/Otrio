@@ -105,8 +105,8 @@ function setup() {
   createCanvas(600, 600);
   let w6 = width/6;
   let h6 = height/6;
-  let centerXs = [w6,w6*3,w6*5];
-  let centerYs = [h6,h6*3,h6*5];
+  centerXs = [w6,w6*3,w6*5];
+  centerYs = [h6,h6*3,h6*5];
 
   frameRate(5);
 
@@ -138,9 +138,9 @@ function equals3(a, b, c) {
 }
 
 function checkWinner(wentHere) { 
-  print("In checkWinner as currentPlayer " + currentPlayer);
-  print('And wentHere is: ' + wentHere + " of type " + typeof wentHere);
-  print("Board: " + otrio_board);
+  // print("In checkWinner as currentPlayer " + currentPlayer);
+  // print('And wentHere is: ' + wentHere + " of type " + typeof wentHere);
+  // print("Board: " + otrio_board);
   // console.log(wentHere[0] + " is a " + typeof wentHere[0]);
   // made this function a switch statement and hardcoded each position's possible wins
   // then for each one there is only be about 5 to check and is much faster
@@ -445,8 +445,9 @@ function nextTurn() {
     let bestSpot = null;
     let bestScore = Number.MIN_VALUE;
     let availableSpots = available0.concat(available1).concat(available2);
-    for (possibleSpot in availableSpots) {
-      score = minimax(possibleSpot);
+    for (let i = 0; i < availableSpots.length; i++) {
+      let possibleSpot = availableSpots[i];
+      let score = minimax(possibleSpot);
       if (score > bestScore) {
         bestScore = score;
         bestSpot = possibleSpot;
@@ -454,6 +455,28 @@ function nextTurn() {
     }
 
     spot = bestSpot;
+
+    // gotta remove the piece from pieces AND available[012]
+    let piece = floor(spot / 9) + 1;
+    let available;
+    switch (piece) {
+      case 1: 
+        available = available0;
+        break;
+      case 2:
+        available = available1;
+        break;
+      case 3:
+        available = available2;
+        break;
+      default:
+        print('In nextTurn, piece is ' + piece + '!');
+    }
+
+    let test = available.splice(available.indexOf(spot), 1);
+    if (test != spot) {
+      print('Houston, we have a problem: In nextTurn, spot removal code doesn\'t remove spot (' + test + ' != ' + spot + ')');
+    }
   }
   
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
@@ -543,10 +566,6 @@ function draw() {
     else if (i<18) {ellipse(x, y, w / 1.7);}
     else if (i<27) {ellipse(x, y, w / 3.1);}
   }
-
-  // check for winner and stop if found
-  // logBoard();
-  // print("In draw and spot[0]: " + spot[0] + " is a " + typeof spot[0]);
   
   // print(result);
   if (result != null) {
