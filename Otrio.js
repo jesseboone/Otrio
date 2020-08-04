@@ -3,29 +3,17 @@
 // Human playable vs up to 3 cpu (random) players...
 // Hopefully AI cpu players to follow...
 
-// each players pieces
-let P1Pieces = [3, 3, 3];
-let ai_pieces = [
-  [0, 0, 0, 1, 1, 1, 2, 2, 2],
-  [0, 0, 0, 1, 1, 1, 2, 2, 2],
-  [0, 0, 0, 1, 1, 1, 2, 2, 2]
-];
-
-// Available spots on each level of board
-/* let available = [
-  [0, 1, 2, 3, 4, 5, 6, 7, 8],
-  [9, 10, 11, 12, 13, 14, 15, 16, 17],
-  [18, 19, 20, 21, 22, 23, 24, 25, 26]
-] */
-let available0 = [  0, 1, 2, 3, 4, 5, 6, 7, 8 ];
-let available1 = [  9,10,11,12,13,14,15,16,17 ];
-let available2 = [ 18,19,20,21,22,23,24,25,26 ];
-
 // game board
-let otrio_board = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
+let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // players
 let players = [1, 2];
+
+// each players pieces
+let pieces = [
+  [3, 3, 3],
+  [3, 3, 3]
+];
 
 // used for distance formula later
 let centerXs;
@@ -61,30 +49,27 @@ let resultP; // <p> element for displaying winner
 let radio; // <input> element for selecting AI strategy
 
 function gameSetup() {
-  // each players pieces
-  P1Pieces = [3,3,3];
-  ai_pieces = [
-    [0, 0, 0, 1, 1, 1, 2, 2, 2],
-    [0, 0, 0, 1, 1, 1, 2, 2, 2],
-    [0, 0, 0, 1, 1, 1, 2, 2, 2]
-  ];
+  otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-  // Available spots on each level of board
-  available0 = [  0, 1, 2, 3, 4, 5, 6, 7, 8 ];
-  available1 = [  9,10,11,12,13,14,15,16,17 ];
-  available2 = [ 18,19,20,21,22,23,24,25,26 ];
-
-  // game board
-  otrio_board = [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ];
-
-  // remaking player array based on slider value
+  // remaking player and pieces arrays based on slider value
   players = [];
+  pieces = [];
   for (var i = 1; i <= slider.value(); i++) {
     players.push(i);
+    pieces.push([3, 3, 3]);
   }
   currentPlayer = 0;
 
   result = null;
+}
+
+function deepCopy2DArray(arr) {
+  // Deep copy a 2D array
+  let fresh = [];
+  for (let i = 0; i < arr.length; i++) {
+    fresh.push(arr[i].concat());
+  }
+  return fresh;
 }
 
 // mostly unneeded, used for bug fixes
@@ -93,9 +78,6 @@ function logBoard() {
   print("currentPlayer: " + currentPlayer);
   // let o = otrio_board.toString();
   // console.log("Board: " + o);
-  // console.log("Av0: " + available0);
-  // console.log("Av1: " + available1);
-  // console.log("Av2: " + available2);
 }
 
 function setup() {
@@ -126,6 +108,22 @@ function setup() {
   radio.selected('minimax');
 }
 
+function eligibleMove(spot, board, pieces) {
+  // If spot is available and the player has at least one of the correct piece, return true
+  return board[spot] == 0 && pieces[floor(spot / 9)] > 0;
+}
+
+function availableSpots(board) {
+  // Return indices of empty spots on the board
+  let available = [];
+  for (let i = 0; i < board.length; i++) {
+    if (board[i] == 0) {
+      available.push(i);
+    }
+  }
+  return available;
+}
+
 function newGame() {
   print("New game with " + slider.value() + " players.");
   resultP.html('');
@@ -137,13 +135,10 @@ function equals3(a, b, c) {
   return (a != '0' && a == b && b == c);
 }
 
-function checkWinner(wentHere) { 
-  // print("In checkWinner as currentPlayer " + currentPlayer);
-  // print('And wentHere is: ' + wentHere + " of type " + typeof wentHere);
-  // print("Board: " + otrio_board);
-  // console.log(wentHere[0] + " is a " + typeof wentHere[0]);
+function checkWinner(wentHere, otrio_board, pieces) { 
   // made this function a switch statement and hardcoded each position's possible wins
   // then for each one there is only be about 5 to check and is much faster
+  // returns an integer player, null, or 'tie'
   let winner = null;
 
   switch(wentHere) {
@@ -379,20 +374,17 @@ function checkWinner(wentHere) {
   }
   // If all players are out of pieces, return 'tie'
   let all_out = true;
-  if (P1Pieces[0] == 0 && P1Pieces[1] == 0 && P1Pieces[2] == 0) {
-    for (let i = 2; i <= slider.value(); i++) { // for each AI
-      if (ai_pieces[i-2].length > 0) { // if they have any remaining moves left
-        all_out = false;
-      }
+  for (let i = 0; i < slider.value(); i++) { // for each player
+    if (pieces[i].reduce((acc, x) => acc + x) > 0) { // if they have any remaining moves left
+      all_out = false;
     }
-  } else {
-    all_out = false;
   }
+
   if (all_out) {
     return 'tie';
   }
 
-  if ( (available0 == '') && (available1 == '') && (available2 == '') && (winner == null) ) {
+  if (otrio_board.filter(spot => spot == 0).length == 0  && (winner == null)) {
     return 'tie';
   }
   else {
@@ -400,87 +392,49 @@ function checkWinner(wentHere) {
   } 
 }
 
-// look for available spot for that type of piece
-function getSpot(piece) {
-  // console.log('In get spot with piece: ' + piece);
-  if (piece == 0) return available0.splice(floor(random(available0.length)), 1);
-  else if (piece == 1) return available1.splice(floor(random(available1.length)), 1);
-  else if (piece == 2) return available2.splice(floor(random(available2.length)), 1);
-}
-
-function minimax(spot) {
-  /*
-   if leaf(n) or depth=0 return evaluate(n)
-   if n is a max node
-      v := L
-      for each child of n
-         v' := minimax (child,d-1)
-         if v' > v, v:= v'
-      return v
-   if n is a min node
-      v := W
-      for each child of n
-         v' := minimax (child,d-1)
-         if v' < v, v:= v'
-      return v
-  */
-  return spot;
-}
-
 let spot = -1;
 // find random place to go
 function nextTurn() {
-  // console.log('next turn called for player: ' + currentPlayer);
   if (radio.selected() == 'random') {
-    let index = floor(random(ai_pieces[currentPlayer - 1].length))
-    let piece = ai_pieces[currentPlayer - 1].splice(index, 1);
-
-    if (piece == '') {
-      console.log('Game over, out of pieces');
-      noLoop();
-    }
+    let available = availableSpots(otrio_board);
     
-    spot = getSpot(piece);
-  } else if (radio.selected() == 'minimax') {
-    let bestSpot = null;
-    let bestScore = Number.MIN_VALUE;
-    let availableSpots = available0.concat(available1).concat(available2);
-    for (let i = 0; i < availableSpots.length; i++) {
-      let possibleSpot = availableSpots[i];
-      let score = minimax(possibleSpot);
-      if (score > bestScore) {
-        bestScore = score;
-        bestSpot = possibleSpot;
+    // Check available spots and make the first move we can
+    available = shuffle(available);
+    for (let i = 0; i < available.length; i++) {
+      let available_piece = floor(available[i] / 9);
+      if (pieces[currentPlayer][available_piece] > 0) { // we still have pieces of this size
+        spot = available[i];
+        pieces[currentPlayer][available_piece]--;
+        break;
       }
     }
+  } else if (radio.selected() == 'minimax') {
+    let bestSpot = null;
+    let bestScore = -Number.MIN_VALUE;
+    let available = availableSpots(otrio_board);
+    for (let i = 0; i < available.length; i++) {
+      if (eligibleMove(available[i], otrio_board, pieces[currentPlayer])) {
+        let board_copy = otrio_board.concat(); // call concat with no args to make a copy
+        board_copy[available[i]] = players[currentPlayer];
+        let pieces_copy = deepCopy2DArray(pieces);
+        pieces_copy[currentPlayer][floor(spot / 9)]--;
+        let turn = (currentPlayer + 1) % players.length;
+        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 3);
+        if (score > bestScore) {
+          bestScore = score;
+          bestSpot = available[i];
+        }
+      }
+    }
+    print(minimax_calls);
 
     spot = bestSpot;
-
-    // gotta remove the piece from pieces AND available[012]
-    let piece = floor(spot / 9) + 1;
-    let available;
-    switch (piece) {
-      case 1: 
-        available = available0;
-        break;
-      case 2:
-        available = available1;
-        break;
-      case 3:
-        available = available2;
-        break;
-      default:
-        print('In nextTurn, piece is ' + piece + '!');
-    }
-
-    let test = available.splice(available.indexOf(spot), 1);
-    if (test != spot) {
-      print('Houston, we have a problem: In nextTurn, spot removal code doesn\'t remove spot (' + test + ' != ' + spot + ')');
-    }
+    let piece = floor(spot / 9);
+    pieces[currentPlayer][piece]--; // this assumes minimax checks to see if currentPlayer has an appropriate piece for spot 
   }
   
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
-  result = checkWinner(spot);
+  result = checkWinner(spot, otrio_board, pieces);
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
 }
 
@@ -507,34 +461,15 @@ function mousePressed() {
       if (ring >= 0) {
         spot = ringVals[ring][y][x];
       }
-      if (spot < 9) {
-        if ( (available0.includes(spot)) && (P1Pieces[0]>0) ) {
-          available0.splice(available0.indexOf(spot), 1); // remove spot from available
-          otrio_board[spot] = players[currentPlayer]; // claim that spot on board
-          P1Pieces[0]--;
-          went = true;
-        }
-      }
-      else if (spot < 18) {
-        if ( (available1.includes(spot)) && (P1Pieces[1]>0) ) {
-          available1.splice(available1.indexOf(spot), 1); // remove spot from available
-          otrio_board[spot] = players[currentPlayer]; // claim that spot on board
-          P1Pieces[1]--;
-          went = true;
-        }
-      }
-      else if (spot < 27) {
-        if ( (available2.includes(spot)) && (P1Pieces[2]>0) ) {
-          available2.splice(available2.indexOf(spot), 1); // remove spot from available
-          otrio_board[spot] = players[currentPlayer]; // claim that spot on board
-          P1Pieces[2]--;
-          went = true;
-        }
+      if (eligibleMove(spot, otrio_board, pieces[0])) {
+        otrio_board[spot] = players[currentPlayer];
+        pieces[0][floor(spot / 9)]--;
+        went = true;
       }
     }
   }
   print("In mousePressed and spot: " + spot + " is a " + typeof spot);
-  result = checkWinner(spot);
+  result = checkWinner(spot, otrio_board, pieces);
   if (went) currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
   loop();
 }
