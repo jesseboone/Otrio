@@ -57,16 +57,16 @@ function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
   }
   
   let available = availableSpots(board);
+  let board_copy = board.concat(); 
+  let pieces_copy = deepCopy2DArray(pieces);
+  let next_turn = (currentPlayer + 1) % players.length;
   if (turn == player) { // max node
     let score = min;
     for (let i = 0; i < available.length; i++) {
       if (eligibleMove(available[i], board, pieces[turn])) {
         // create child gamestate
-        let board_copy = board.concat(); // call concat with no args to make a copy
         board_copy[available[i]] = players[turn];
-        let pieces_copy = deepCopy2DArray(pieces);
         pieces_copy[currentPlayer][floor(available[i] / 9)]--;
-        let next_turn = (currentPlayer + 1) % players.length;
         // find child score
         let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1, score, max);
         if (temp_score > score) {
@@ -83,11 +83,8 @@ function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
     for (let i = 0; i < available.length; i++) {
       if (eligibleMove(available[i], board, pieces[turn])) {
         // create child gamestate
-        let board_copy = board.concat(); // call concat with no args to make a copy
         board_copy[available[i]] = players[turn];
-        let pieces_copy = deepCopy2DArray(pieces);
         pieces_copy[currentPlayer][floor(available[i] / 9)]--;
-        let next_turn = (currentPlayer + 1) % players.length;
         // find child score
         let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1, min, score);
         if (temp_score < score) {
