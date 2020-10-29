@@ -3,6 +3,8 @@
 // Human playable vs up to 3 cpu (random) players...
 // AI cpu players in progress...
 
+console.log('ml5 version:', ml5.version);
+
 
 // to keep track of random play wins
 let wins_ties = [0,0];
@@ -59,8 +61,17 @@ let result;
 
 let slider; // <input> element for selecting number of players
 let button; // <button> element for starting a new game
+let saveBtn; // button to initiate saving data
+let loadBtn; // button to initiate loading data
 let resultP; // <p> element for displaying winner
 let radio; // <input> element for selecting AI strategy
+
+// function keyPressed() {
+//   if (key == 's') {
+//     print('S pressed');
+//     // nn.saveData('data');
+//   }
+// }
 
 function gameSetup() {
   otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -114,12 +125,29 @@ function setup() {
   button.position(width+10, height+50);
   button.mousePressed(newGame);
 
+  saveBtn = createButton('Save');
+  saveBtn.position(width+10, height+100);
+  saveBtn.mousePressed(saveData);
+  loadBtn = createButton('Load');
+  loadBtn.position(width+10, height+75);
+  loadBtn.mousePressed(loadData);
+
   resultP = createP('');
 
   radio = createRadio();
   radio.option('random');
   radio.option('minimax');
   radio.selected('random');
+}
+
+function saveData() {
+  nn.saveData('data');
+  console.log('data saved');
+}
+
+function loadData() {
+  nn.loadData('data.json');
+  console.log('data loaded');
 }
 
 function eligibleMove(spot, board, pieces) {
@@ -143,7 +171,7 @@ function less1(i) {
   else return (i-1);
 }
 
-function saveBoards() {
+function saveBoards(winner) {
   let moves = 0;
   // add function here to turn opponents into -1s before copying it over????
   for (var i = otrio_board.length - 1; i >= 0; i--) {
@@ -159,6 +187,33 @@ function saveBoards() {
   boards[1][last2moves[1]] = 0;
   boards[0][last2moves[1]] = 0;
   boards[0][last2moves[0]] = 0;
+
+  let input0;
+  let input1;
+  let input2;
+  let target0;
+  let target1;
+  let target2;
+
+  if (winner == 1) { // make it a winner set
+    input2 = { board: boards[2].concat() }
+    target2 = { score: 9.0 }
+    input1 = { board: boards[1].concat() }
+    target1 = { score: 6.0 }
+    input0 = { board: boards[0].concat() }
+    target0 = { score: 3.0 }
+  }
+  else { // make it a loser set
+    input2 = { board: boards[2].concat() }
+    target2 = { score: -9.0 }
+    input1 = { board: boards[1].concat() }
+    target1 = { score: -6.0 }
+    input0 = { board: boards[0].concat() }
+    target0 = { score: -3.0 }  
+  }
+  nn.addData(input2, target2);
+  nn.addData(input1, target1);
+  nn.addData(input0, target0);
   return;
 }
 
@@ -551,8 +606,8 @@ function draw() {
     else if (i<27) {ellipse(x, y, w / 3.1);}
   }
   
-  // print(result);
   if (result != null) {
+    print("Winner is: " + result);
     noLoop();
     resultP.style('font-size', '32pt');
     if (result == 'tie') {
@@ -562,8 +617,8 @@ function draw() {
     } else {
       resultP.html(`${result} wins!`);
       wins_ties[0]++;
-      saveBoards();
-      print(last2moves); print(boards[0]); print(boards[1]); print(boards[2]); print(wins_ties);
+      saveBoards(result);
+      // print(last2moves); print(boards[0]); print(boards[1]); print(boards[2]); print(wins_ties);
       newGame();
       //console.log(winnerFrom);
     }
