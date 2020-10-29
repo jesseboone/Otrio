@@ -1,7 +1,18 @@
 // Jesse Boone
 // Otrio javascript game
 // Human playable vs up to 3 cpu (random) players...
-// Hopefully AI cpu players to follow...
+// AI cpu players in progress...
+
+
+// to keep track of random play wins
+let wins_ties = [0,0];
+let boards = [
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+];
+let last2moves = [0,0,0]; // [(2 moves ago), (last move)]
+// let winningMove = 0;
 
 // For observing pruning improvements
 let minimax_calls = [0, 0, 0, 0];
@@ -9,10 +20,10 @@ let minimax_calls = [0, 0, 0, 0];
 // game board
 let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-// players
+// players (default game starts at 2)
 let players = [1, 2];
 
-// each players pieces
+// each default player's pieces
 let pieces = [
   [3, 3, 3],
   [3, 3, 3]
@@ -53,7 +64,7 @@ let radio; // <input> element for selecting AI strategy
 
 function gameSetup() {
   otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+  last2moves = [0,0,0]; // probably don't even need this since you can't win in under 3 moves but just in case
   // remaking player and pieces arrays based on slider value
   players = [];
   pieces = [];
@@ -108,7 +119,7 @@ function setup() {
   radio = createRadio();
   radio.option('random');
   radio.option('minimax');
-  radio.selected('minimax');
+  radio.selected('random');
 }
 
 function eligibleMove(spot, board, pieces) {
@@ -127,8 +138,32 @@ function availableSpots(board) {
   return available;
 }
 
+function less1(i) {
+  if (i == 0) return 2;
+  else return (i-1);
+}
+
+function saveBoards() {
+  let moves = 0;
+  // add function here to turn opponents into -1s before copying it over????
+  for (var i = otrio_board.length - 1; i >= 0; i--) {
+    if (otrio_board[i] > 1) otrio_board[i] = -1;
+    if (otrio_board[i] != 0) moves++;
+  }
+  print("Moves this game: " + moves);
+  // save final board into all 3 spots
+  boards[2] = otrio_board.concat();
+  boards[1] = otrio_board.concat();
+  boards[0] = otrio_board.concat();
+  // reset last move and 2 moves to 0 in each previous board respectively
+  boards[1][last2moves[1]] = 0;
+  boards[0][last2moves[1]] = 0;
+  boards[0][last2moves[0]] = 0;
+  return;
+}
+
 function newGame() {
-  print("New game with " + slider.value() + " players.");
+  // print("New game with " + slider.value() + " players.");
   resultP.html('');
   gameSetup();
   loop();
@@ -395,7 +430,15 @@ function checkWinner(wentHere, otrio_board, pieces) {
   } 
 }
 
-let spot = -1;
+function shiftBack(arr, a) {
+  arr[0] = arr[1];
+  arr[1] = arr[2];
+  arr[2] = a;
+  // print(arr);
+  return;
+}
+
+let spot = -1; // why is this here?
 // find random place to go
 function nextTurn() {
   if (radio.selected() == 'random') {
@@ -437,6 +480,8 @@ function nextTurn() {
     pieces[currentPlayer][piece]--; // this assumes minimax checks to see if currentPlayer has an appropriate piece for spot 
   }
   
+  shiftBack(last2moves, spot);
+
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
   result = checkWinner(spot, otrio_board, pieces);
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
@@ -472,7 +517,7 @@ function mousePressed() {
       }
     }
   }
-  print("In mousePressed and spot: " + spot + " is a " + typeof spot);
+  // print("In mousePressed and spot: " + spot + " is a " + typeof spot);
   result = checkWinner(spot, otrio_board, pieces);
   if (went) currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
   loop();
@@ -511,15 +556,22 @@ function draw() {
     noLoop();
     resultP.style('font-size', '32pt');
     if (result == 'tie') {
+      wins_ties[1]++;
       resultP.html("Tie!")
+      newGame();
     } else {
       resultP.html(`${result} wins!`);
+      wins_ties[0]++;
+      saveBoards();
+      print(last2moves); print(boards[0]); print(boards[1]); print(boards[2]); print(wins_ties);
+      newGame();
       //console.log(winnerFrom);
     }
   } else {
-    if (currentPlayer > 0) {
+    if (currentPlayer > 0) { // calling random for non human (0) player
       nextTurn();
     }
-    else noLoop();
+    // else noLoop();
+    else nextTurn();
   }
 }
