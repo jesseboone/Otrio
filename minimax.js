@@ -1,3 +1,5 @@
+console.log("minimax.js");
+
 function is_terminal_state(lastSpot, board, pieces) {
   /* 
   if all players are out of pieces
@@ -22,20 +24,35 @@ function is_terminal_state(lastSpot, board, pieces) {
   }
 }
 
+let evalfunval = 0;
+function useResults(err, results) {
+ // console.log(results[0][0]);
+ evalfunval = results[0][0];
+}
+
 function evaluate(lastSpot, board, pieces, player) {
+  // console.log(board);
+
+  // nn.predict(board.concat(), useResults);
+  // evalfunval = traditionalEval(lastSpot, board, player);
+  evalfunval = eval1(lastSpot, board, player);
+
+  return evalfunval;
+
+
   /*
   Return number representing how good this board is for player
   */
-  let winner = checkWinner(lastSpot, board, pieces);
-  if (winner == player) {
-    return Number.MAX_VALUE;
-  } else if (winner == null) {
-    return 0;
-  } else if (winner == 'tie') {
-    return -1;
-  } else { // winner != player but a player has won
-    return -Number.MIN_VALUE;
-  }
+  // let winner = checkWinner(lastSpot, board, pieces);
+  // if (winner == player) {
+  //   return Number.MAX_VALUE;
+  // } else if (winner == null) {
+  //   return 0;
+  // } else if (winner == 'tie') {
+  //   return -1;
+  // } else { // winner != player but a player has won
+  //   return -Number.MIN_VALUE;
+  // }
 }
 
 function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
@@ -51,6 +68,7 @@ function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
    *
    * Great reference: https://www.cs.cornell.edu/courses/cs312/2002sp/lectures/rec21.htm
    */
+  // console.log("lastSpot: " + lastSpot);
   minimax_calls[depth]++;
   if (is_terminal_state(lastSpot, board, pieces) || depth == 0) {
     return evaluate(lastSpot, board, pieces, player);

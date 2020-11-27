@@ -11,10 +11,16 @@ let wins_ties = [0,0];
 let boards = [
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ];
-let last2moves = [0,0,0]; // [(2 moves ago), (last move)]
+let last4moves = [0,0,0,0,0]; // [(2 moves ago), (last move)]
 // let winningMove = 0;
+let test0 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+let test1 = [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+let test2 = [0, 0, 0, 0, 0, 0, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
 
 // For observing pruning improvements
 let minimax_calls = [0, 0, 0, 0];
@@ -24,6 +30,9 @@ let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 // players (default game starts at 2)
 let players = [1, 2];
+
+// to keep track of play/pause state
+let playing = 0;
 
 // each default player's pieces
 let pieces = [
@@ -63,6 +72,8 @@ let slider; // <input> element for selecting number of players
 let button; // <button> element for starting a new game
 let saveBtn; // button to initiate saving data
 let loadBtn; // button to initiate loading data
+let playPauseBtn; // button to start/stop random play
+let trainBtn; // button to initiate training
 let resultP; // <p> element for displaying winner
 let radio; // <input> element for selecting AI strategy
 
@@ -75,7 +86,7 @@ let radio; // <input> element for selecting AI strategy
 
 function gameSetup() {
   otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  last2moves = [0,0,0]; // probably don't even need this since you can't win in under 3 moves but just in case
+  last4moves = [0,0,0,0,0]; // probably don't even need this since you can't win in under 3 moves but just in case
   // remaking player and pieces arrays based on slider value
   players = [];
   pieces = [];
@@ -118,13 +129,19 @@ function setup() {
   frameRate(5);
 
   slider = createSlider(1, 4, 2);
-  slider.position(width+10, height+10);
+  slider.position(width+10, height);
   slider.style('width', '80px');
 
   button = createButton('New Game');
-  button.position(width+10, height+50);
+  button.position(width+10, height+25);
   button.mousePressed(newGame);
+  playPauseBtn = createButton('|> ||');
+  playPauseBtn.position(width+10, height+50);
+  playPauseBtn.mousePressed(playPause);
 
+  saveBtn = createButton('Train');
+  saveBtn.position(width+10, height+125);
+  saveBtn.mousePressed(trainModel);
   saveBtn = createButton('Save');
   saveBtn.position(width+10, height+100);
   saveBtn.mousePressed(saveData);
@@ -137,7 +154,52 @@ function setup() {
   radio = createRadio();
   radio.option('random');
   radio.option('minimax');
-  radio.selected('random');
+  radio.selected('minimax');
+}
+
+function playPause() {
+  playing = (playing+1)%2;
+}
+
+function trainModel() {
+  console.log('starting training');
+  // nn.normalizeData();
+  let trainOptions = {
+    epochs: 100
+  }
+  nn.train(trainOptions, whileTraining, finishedTraining);
+  // console.log('training complete');
+}
+
+function whileTraining(epoch, loss) {
+  console.log(epoch);
+}
+
+
+// function finishedTraining(){
+//     nn.predict(test, (err, results) => {
+//       if(err){
+//         console.log(err);
+//         return;
+//       }
+//       console.log(results);
+//     })
+// }
+
+function finishedTraining() {
+  console.log('finished training.');
+  // state = 'prediction';
+  nn.predict(test0, gotResults);
+  nn.predict(test1, gotResults);
+  nn.predict(test2, gotResults);
+}
+
+function gotResults(error, results) {
+  if (error) {
+    console.error(error);
+    return;
+  }
+  console.log(results);
 }
 
 function saveData() {
@@ -167,7 +229,7 @@ function availableSpots(board) {
 }
 
 function less1(i) {
-  if (i == 0) return 2;
+  if (i == 0) return 4;
   else return (i-1);
 }
 
@@ -179,41 +241,53 @@ function saveBoards(winner) {
     if (otrio_board[i] != 0) moves++;
   }
   print("Moves this game: " + moves);
-  // save final board into all 3 spots
+  // save final board into all 5 spots of boards to be saved
+  boards[4] = otrio_board.concat();
+  boards[3] = otrio_board.concat();
   boards[2] = otrio_board.concat();
   boards[1] = otrio_board.concat();
   boards[0] = otrio_board.concat();
-  // reset last move and 2 moves to 0 in each previous board respectively
-  boards[1][last2moves[1]] = 0;
-  boards[0][last2moves[1]] = 0;
-  boards[0][last2moves[0]] = 0;
 
-  let input0;
-  let input1;
-  let input2;
-  let target0;
-  let target1;
-  let target2;
+  // reset all appropriate previous moves from each previous board respectively
+  for (var i = 0; i<4; i++) { 
+    for (var j = 3; j>=i; j--) {
+      // print('resetting board[' + i + '][' + last4moves[j] + '] to 0');
+      boards[i][last4moves[j]] = 0;
+    }
+    // print(boards[i]);
+  }
+
+  let inputs = [];
+  let targets = [];
 
   if (winner == 1) { // make it a winner set
-    input2 = { board: boards[2].concat() }
-    target2 = { score: 9.0 }
-    input1 = { board: boards[1].concat() }
-    target1 = { score: 6.0 }
-    input0 = { board: boards[0].concat() }
-    target0 = { score: 3.0 }
+    // inputs[4] = boards[4].concat()
+    targets[4] = [10.0]
+    // inputs[3] = boards[3].concat()
+    targets[3] = [8.0]
+    // inputs[2] = boards[2].concat()
+    targets[2] = [6.0]
+    // inputs[1] = boards[1].concat()
+    targets[1] = [4.0]
+    // inputs[0] = boards[0].concat()
+    targets[0] = [2.0]
   }
   else { // make it a loser set
-    input2 = { board: boards[2].concat() }
-    target2 = { score: -9.0 }
-    input1 = { board: boards[1].concat() }
-    target1 = { score: -6.0 }
-    input0 = { board: boards[0].concat() }
-    target0 = { score: -3.0 }  
+    // inputs[4] = boards[4].concat()
+    targets[4] = [-10.0]
+    // inputs[3] = boards[3].concat()
+    targets[3] = [-8.0]
+    // inputs[2] = boards[2].concat()
+    targets[2] = [-6.0]
+    // inputs[1] = boards[1].concat()
+    targets[1] = [-4.0]
+    // inputs[0] = boards[0].concat()
+    targets[0] = [-2.0]  
   }
-  nn.addData(input2, target2);
-  nn.addData(input1, target1);
-  nn.addData(input0, target0);
+  for (var i = 0; i < 5; i++) {
+    nn.addData(boards[i].concat(), targets[i]);
+    // print(typeof inputs[i]);
+  }
   return;
 }
 
@@ -241,7 +315,7 @@ function checkWinner(wentHere, otrio_board, pieces) {
           (equals3(otrio_board[0],otrio_board[4],otrio_board[8])) || 
           (equals3(otrio_board[0],otrio_board[9],otrio_board[18])) || 
           (equals3(otrio_board[0],otrio_board[10],otrio_board[20])) || 
-          (equals3(otrio_board[0],otrio_board[13],otrio_board[17])) || 
+          (equals3(otrio_board[0],otrio_board[13],otrio_board[26])) || 
           (equals3(otrio_board[0],otrio_board[12],otrio_board[24])) ) 
       { winner = otrio_board[0]; }
       break;
@@ -280,7 +354,7 @@ function checkWinner(wentHere, otrio_board, pieces) {
     case 5:
       if ((equals3(otrio_board[2],otrio_board[5],otrio_board[8])) || 
           (equals3(otrio_board[3],otrio_board[4],otrio_board[5])) || 
-          (equals3(otrio_board[3],otrio_board[13],otrio_board[21])) || 
+          (equals3(otrio_board[5],otrio_board[13],otrio_board[21])) || 
           (equals3(otrio_board[5],otrio_board[14],otrio_board[23])) )
       { winner = otrio_board[5]; }
       break;
@@ -486,9 +560,10 @@ function checkWinner(wentHere, otrio_board, pieces) {
 }
 
 function shiftBack(arr, a) {
-  arr[0] = arr[1];
-  arr[1] = arr[2];
-  arr[2] = a;
+  for (var i = 0; i < 4; i++) {
+    arr[i] = arr[i+1]
+  }
+  arr[4] = a;
   // print(arr);
   return;
 }
@@ -498,6 +573,12 @@ let spot = -1; // why is this here?
 function nextTurn() {
   if (radio.selected() == 'random') {
     let available = availableSpots(otrio_board);
+
+    // for the logical approach...
+    // if theres a spot you can win in, go there
+    // if theres a spot opponent can win in, go there
+    // if theres a spot that can give you two winning spots, go there
+    // if theres a spot that can give opponent the same, go there
     
     // Check available spots and make the first move we can
     available = shuffle(available);
@@ -509,7 +590,8 @@ function nextTurn() {
         break;
       }
     }
-  } else if (radio.selected() == 'minimax') {
+  } 
+  else if (radio.selected() == 'minimax') {
     minimax_calls = [0, 0, 0, 0];
     let bestSpot = null;
     let bestScore = -Number.MIN_VALUE;
@@ -521,21 +603,21 @@ function nextTurn() {
         let pieces_copy = deepCopy2DArray(pieces);
         pieces_copy[currentPlayer][floor(spot / 9)]--;
         let turn = (currentPlayer + 1) % players.length;
-        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 2, -Number.MAX_VALUE, Number.MAX_VALUE);
+        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 0, -Number.MAX_VALUE, Number.MAX_VALUE);
         if (score > bestScore) {
           bestScore = score;
           bestSpot = available[i];
         }
       }
     }
-    print('minimax calls at each depth: ' + minimax_calls);
+    // print('minimax calls at each depth: ' + minimax_calls);
 
     spot = bestSpot;
     let piece = floor(spot / 9);
     pieces[currentPlayer][piece]--; // this assumes minimax checks to see if currentPlayer has an appropriate piece for spot 
   }
   
-  shiftBack(last2moves, spot);
+  shiftBack(last4moves, spot);
 
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
   result = checkWinner(spot, otrio_board, pieces);
@@ -578,6 +660,27 @@ function mousePressed() {
   loop();
 }
 
+function keyPressed() {
+
+  if (key == 't') {
+    console.log('starting training');
+    // nn.normalizeData();
+    let trainOptions = {
+      epochs: 100
+    }
+    nn.train(trainOptions, whileTraining, finishedTraining);
+  }
+  if (key == 'l') {
+    const modelInfo = {
+    model: 'model/model.json',
+    metadata: 'model/model_meta.json',
+    weights: 'model/model.weights.bin',
+    };
+    nn.load(modelInfo, modelLoadedCallback);
+  }
+
+}
+
 function draw() {
   // set drawing settings
   background(255);
@@ -613,20 +716,18 @@ function draw() {
     if (result == 'tie') {
       wins_ties[1]++;
       resultP.html("Tie!")
-      newGame();
+      // newGame(); // uncomment to continue data Generation upon tie
     } else {
       resultP.html(`${result} wins!`);
       wins_ties[0]++;
       saveBoards(result);
-      // print(last2moves); print(boards[0]); print(boards[1]); print(boards[2]); print(wins_ties);
-      newGame();
-      //console.log(winnerFrom);
+      // newGame(); // uncomment to continue data Generation upon tie
     }
-  } else {
+  } else if (playing) {
     if (currentPlayer > 0) { // calling random for non human (0) player
       nextTurn();
     }
-    // else noLoop();
-    else nextTurn();
+    else noLoop(); // swap these two to go back to data Gen
+    // else nextTurn(); // swap these two to go back to data Gen
   }
 }
