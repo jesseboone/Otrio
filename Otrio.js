@@ -32,7 +32,7 @@ let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 let players = [1, 2];
 
 // to keep track of play/pause state
-let playing = 0;
+let playing = 1;
 
 // each default player's pieces
 let pieces = [
@@ -154,7 +154,8 @@ function setup() {
   radio = createRadio();
   radio.option('random');
   radio.option('minimax');
-  radio.selected('minimax');
+  radio.option('logical');
+  radio.selected('logical');
 }
 
 function playPause() {
@@ -174,17 +175,6 @@ function trainModel() {
 function whileTraining(epoch, loss) {
   console.log(epoch);
 }
-
-
-// function finishedTraining(){
-//     nn.predict(test, (err, results) => {
-//       if(err){
-//         console.log(err);
-//         return;
-//       }
-//       console.log(results);
-//     })
-// }
 
 function finishedTraining() {
   console.log('finished training.');
@@ -302,7 +292,7 @@ function equals3(a, b, c) {
   return (a != '0' && a == b && b == c);
 }
 
-function checkWinner(wentHere, otrio_board, pieces) { 
+function checkWinner(wentHere, otrio_board) { 
   // made this function a switch statement and hardcoded each position's possible wins
   // then for each one there is only be about 5 to check and is much faster
   // returns an integer player, null, or 'tie'
@@ -569,17 +559,12 @@ function shiftBack(arr, a) {
 }
 
 let spot = -1; // why is this here?
+
 // find random place to go
 function nextTurn() {
+  let available = availableSpots(otrio_board);
   if (radio.selected() == 'random') {
-    let available = availableSpots(otrio_board);
 
-    // for the logical approach...
-    // if theres a spot you can win in, go there
-    // if theres a spot opponent can win in, go there
-    // if theres a spot that can give you two winning spots, go there
-    // if theres a spot that can give opponent the same, go there
-    
     // Check available spots and make the first move we can
     available = shuffle(available);
     for (let i = 0; i < available.length; i++) {
@@ -591,11 +576,16 @@ function nextTurn() {
       }
     }
   } 
+
+  else if (radio.selected() == 'logical') {
+    logical(available);
+  }
+
   else if (radio.selected() == 'minimax') {
     minimax_calls = [0, 0, 0, 0];
     let bestSpot = null;
     let bestScore = -Number.MIN_VALUE;
-    let available = availableSpots(otrio_board);
+    // let available = availableSpots(otrio_board);
     for (let i = 0; i < available.length; i++) {
       if (eligibleMove(available[i], otrio_board, pieces[currentPlayer])) {
         let board_copy = otrio_board.concat(); // call concat with no args to make a copy
@@ -603,9 +593,12 @@ function nextTurn() {
         let pieces_copy = deepCopy2DArray(pieces);
         pieces_copy[currentPlayer][floor(spot / 9)]--;
         let turn = (currentPlayer + 1) % players.length;
-        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 0, -Number.MAX_VALUE, Number.MAX_VALUE);
+        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 4, -Number.MAX_VALUE, Number.MAX_VALUE);
         if (score > bestScore) {
+          console.log(board_copy);
+          console.log("With new score: " + score + " replaced: " + bestScore);
           bestScore = score;
+          console.log("New bestSpot is: " + available[i] + " better than: " + bestSpot);
           bestSpot = available[i];
         }
       }
@@ -620,7 +613,7 @@ function nextTurn() {
   shiftBack(last4moves, spot);
 
   otrio_board[spot] = players[currentPlayer]; // claim that spot on board
-  result = checkWinner(spot, otrio_board, pieces);
+  result = checkWinner(spot, otrio_board);
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
 }
 
@@ -654,14 +647,12 @@ function mousePressed() {
       }
     }
   }
-  // print("In mousePressed and spot: " + spot + " is a " + typeof spot);
-  result = checkWinner(spot, otrio_board, pieces);
+  result = checkWinner(spot, otrio_board);
   if (went) currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
   loop();
 }
 
 function keyPressed() {
-
   if (key == 't') {
     console.log('starting training');
     // nn.normalizeData();
@@ -678,7 +669,6 @@ function keyPressed() {
     };
     nn.load(modelInfo, modelLoadedCallback);
   }
-
 }
 
 function draw() {
@@ -710,7 +700,7 @@ function draw() {
   }
   
   if (result != null) {
-    print("Winner is: " + result);
+    // print("Winner is: " + result);
     noLoop();
     resultP.style('font-size', '32pt');
     if (result == 'tie') {
@@ -724,10 +714,15 @@ function draw() {
       // newGame(); // uncomment to continue data Generation upon tie
     }
   } else if (playing) {
-    if (currentPlayer > 0) { // calling random for non human (0) player
+    if (currentPlayer > 0) { // calling radio for non human (0) player
+      // radio.selected('minimax');
       nextTurn();
     }
+    // else {
+    //   radio.selected('logical');
+    //   nextTurn();
+    // }
     else noLoop(); // swap these two to go back to data Gen
-    // else nextTurn(); // swap these two to go back to data Gen
+    // else nextTurn();
   }
 }

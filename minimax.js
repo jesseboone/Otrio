@@ -35,7 +35,7 @@ function evaluate(lastSpot, board, pieces, player) {
 
   // nn.predict(board.concat(), useResults);
   // evalfunval = traditionalEval(lastSpot, board, player);
-  evalfunval = eval1(lastSpot, board, player);
+  evalfunval = eval1(lastSpot, board, players[player]);
 
   return evalfunval;
 
