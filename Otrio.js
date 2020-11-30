@@ -46,6 +46,8 @@ let centerYs;
 
 // used to keep track of whose turn it is
 let currentPlayer = 1;
+console.log("First Player this round: " + players[currentPlayer]);
+
 
 let ringVals = [
   [
@@ -94,8 +96,16 @@ function gameSetup() {
     players.push(i);
     pieces.push([3, 3, 3]);
   }
-  currentPlayer = 1;
 
+  // if (currentPlayer == 0) currentPlayer = 1;
+  // else if (currentPlayer == 1) currentPlayer = 0;
+
+  print("First Player this round: " + players[currentPlayer]);
+  radio.selected('random');
+  forceTurn(26);
+  // nextTurn();
+  // if(otrio_board[13] != 0) console.log("First move was middle middle");
+  // nextTurn();
   result = null;
 }
 
@@ -117,7 +127,7 @@ function logBoard() {
 }
 
 function setup() {
-  let text = createP('1: Red - 2: Green - 3: Blue - 4: Purple');
+  let text = createP('1: Lavender(logical) - 2: Magenta (minimax)');
   text.style('font-size', '32pt');
 
   createCanvas(600, 600);
@@ -230,7 +240,7 @@ function saveBoards(winner) {
     if (otrio_board[i] > 1) otrio_board[i] = -1;
     if (otrio_board[i] != 0) moves++;
   }
-  print("Moves this game: " + moves);
+  console.log("Moves this game: " + moves);
   // save final board into all 5 spots of boards to be saved
   boards[4] = otrio_board.concat();
   boards[3] = otrio_board.concat();
@@ -560,6 +570,17 @@ function shiftBack(arr, a) {
 
 let spot = -1; // why is this here?
 
+function forceTurn(i) {
+    spot = i;
+    let piece = floor(spot / 9);
+    pieces[currentPlayer][piece]--; // this assumes minimax checks to see if currentPlayer has an appropriate piece for spot 
+  shiftBack(last4moves, spot);
+
+  otrio_board[spot] = players[currentPlayer]; // claim that spot on board
+  // result = checkWinner(spot, otrio_board);
+  currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
+}
+
 // find random place to go
 function nextTurn() {
   let available = availableSpots(otrio_board);
@@ -583,8 +604,8 @@ function nextTurn() {
 
   else if (radio.selected() == 'minimax') {
     minimax_calls = [0, 0, 0, 0, 0, 0, 0, 0];
-    // available = shuffle(available);
-    let bestSpot;
+    available = shuffle(available);
+    let bestSpot = available[0];
     let bestScore = -Number.MIN_VALUE;
     // let available = availableSpots(otrio_board);
     for (let i = 0; i < available.length; i++) {
@@ -595,18 +616,18 @@ function nextTurn() {
         pieces_copy[currentPlayer][floor(available[i] / 9)]--;
         let turn = (currentPlayer + 1) % players.length;
         // console.log("Pre-minimax board_copy : " + board_copy);
-        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 4, -Number.MAX_VALUE, Number.MAX_VALUE);
+        let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 2, -Number.MAX_VALUE, Number.MAX_VALUE);
         // console.log("Post-minimax board_copy: " + board_copy);
         if (score > bestScore) {
           // console.log(board_copy);
-          console.log("With new score: " + score + " replaced: " + bestScore);
+          // console.log("With new score: " + score + " replaced: " + bestScore);
           bestScore = score;
-          console.log("New bestSpot is: " + available[i] + " better than: " + bestSpot);
+          // console.log("New bestSpot is: " + available[i] + " better than: " + bestSpot);
           bestSpot = available[i];
         }
       }
     }
-    print('minimax calls at each depth: ' + minimax_calls);
+    // print('minimax calls at each depth: ' + minimax_calls);
 
     spot = bestSpot;
     let piece = floor(spot / 9);
@@ -692,10 +713,10 @@ function draw() {
     let y = h * floor((i%9)/3) + h / 2; // i was j
     let place = otrio_board[i];
     // textSize(32);
-    if (place == players[0]) { fill(color('red'));} 
-    else if (place == players[1]) { fill(color('green'));}
-    else if (place == players[2]) { fill(color('blue'));}
-    else if (place == players[3]) { fill(color('purple'));}
+    if (place == players[0]) { fill(color('lavender'));} 
+    else if (place == players[1]) { fill(color('magenta'));}
+    else if (place == players[2]) { fill(color('red'));}
+    else if (place == players[3]) { fill(color('green'));}
     else fill(color('white'));
     if (i<9) {ellipse(x, y, w / 1.2);}
     else if (i<18) {ellipse(x, y, w / 1.7);}
@@ -703,7 +724,11 @@ function draw() {
   }
   
   if (result != null) {
-    // print("Winner is: " + result);
+    let plyr;
+    if (result == 1) plyr = 'logical'; // Lavender Player (Player 1)
+    if (result == 2) plyr = 'minimax'; // Magenta Player (Player 2)
+    console.log("Winner is: " + plyr);
+    currentPlayer = (currentPlayer+1) % players.length;
     noLoop();
     resultP.style('font-size', '32pt');
     if (result == 'tie') {
@@ -713,19 +738,21 @@ function draw() {
     } else {
       resultP.html(`${result} wins!`);
       wins_ties[0]++;
-      saveBoards(result);
+      // saveBoards(result); // bring back to try NN again
       // newGame(); // uncomment to continue data Generation upon tie
     }
   } else if (playing) {
-    if (currentPlayer > 0) { // calling radio for non human (0) player
-      // radio.selected('minimax');
-      nextTurn();
-    }
-    // else {
-    //   radio.selected('logical');
-    //   nextTurn();
-    // }
-    else noLoop(); // swap these two to go back to data Gen
+    // setTimeout(() => {   
+      if (currentPlayer > 0) { // calling radio for non human (0) player
+        radio.selected('minimax');
+        nextTurn();
+      }
+      else {
+        radio.selected('logical');
+        nextTurn();
+      }
+    // }, 5000);
+    // else noLoop(); // swap these two to go back to data Gen
     // else nextTurn();
   }
 }

@@ -1,4 +1,4 @@
-console.log("minimax.js");
+// console.log("minimax.js");
 
 function is_terminal_state(lastSpot, board, pieces) {
   /* 

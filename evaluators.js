@@ -1,4 +1,4 @@
-console.log("evaluators.js");
+// console.log("evaluators.js");
 
 function sum3(a, b, c) {
   return (a + b + c);

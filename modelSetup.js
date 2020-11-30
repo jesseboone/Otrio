@@ -35,8 +35,8 @@ const options = {
 nn = ml5.neuralNetwork(options);
 
 // loading data
-nn.loadData('data.json');
-console.log('data loaded');
+// nn.loadData('data.json');
+// console.log('data loaded');
 
 // loading previous state of model
 const modelInfo = {
@@ -47,6 +47,6 @@ const modelInfo = {
 nn.load(modelInfo, modelLoadedCallback);
 
 function modelLoadedCallback() {
-	console.log('model loaded');
+	// console.log('model loaded');
 }
 
