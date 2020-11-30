@@ -34,9 +34,10 @@ function evaluate(lastSpot, board, pieces, player) {
   // console.log(board);
 
   // nn.predict(board.concat(), useResults);
-  // evalfunval = traditionalEval(lastSpot, board, player);
-  evalfunval = eval1(lastSpot, board, players[player]);
-
+  // evalfunval = traditionalEval(lastSpot, board, players[player]);
+  evalfunval = eval1(board, players[player]);
+  // if ((evalfunval == 0) && (lastSpot == 13)) return 1;
+  // console.log("Score: " + evalfunval);
   return evalfunval;
 
 
@@ -71,22 +72,26 @@ function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
   // console.log("lastSpot: " + lastSpot);
   minimax_calls[depth]++;
   if (is_terminal_state(lastSpot, board, pieces) || depth == 0) {
+    // console.log("Pre-evaluate board: \t " + board);
     return evaluate(lastSpot, board, pieces, player);
   }
   
   let available = availableSpots(board);
   let board_copy = board.concat(); 
   let pieces_copy = deepCopy2DArray(pieces);
-  let next_turn = (currentPlayer + 1) % players.length;
+  let next_turn = (turn + 1) % players.length;
   if (turn == player) { // max node
     let score = min;
     for (let i = 0; i < available.length; i++) {
-      if (eligibleMove(available[i], board, pieces[turn])) {
+      if (eligibleMove(available[i], board, pieces_copy[turn])) {
         // create child gamestate
         board_copy[available[i]] = players[turn];
-        pieces_copy[currentPlayer][floor(available[i] / 9)]--;
+        pieces_copy[turn][floor(available[i] / 9)]--;
         // find child score
         let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1, score, max);
+        // return to previous state
+        board_copy[available[i]] = 0;
+        pieces_copy[turn][floor(available[i] / 9)]++;
         if (temp_score > score) {
           score = temp_score;
         }
@@ -99,12 +104,15 @@ function minimax(lastSpot, board, pieces, turn, player, depth, min, max) {
   } else { // min node
     let score = max;
     for (let i = 0; i < available.length; i++) {
-      if (eligibleMove(available[i], board, pieces[turn])) {
+      if (eligibleMove(available[i], board, pieces_copy[turn])) {
         // create child gamestate
         board_copy[available[i]] = players[turn];
-        pieces_copy[currentPlayer][floor(available[i] / 9)]--;
+        pieces_copy[turn][floor(available[i] / 9)]--;
         // find child score
         let temp_score = minimax(available[i], board_copy, pieces_copy, next_turn, player, depth - 1, min, score);
+        // return to previous state
+        board_copy[available[i]] = 0;
+        pieces_copy[turn][floor(available[i] / 9)]++;
         if (temp_score < score) {
           score = temp_score;
         }

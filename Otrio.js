@@ -28,7 +28,7 @@ let minimax_calls = [0, 0, 0, 0];
 // game board
 let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-// players (default game starts at 2)
+// players (default game starts at 2 players)
 let players = [1, 2];
 
 // to keep track of play/pause state
@@ -45,7 +45,7 @@ let centerXs;
 let centerYs;
 
 // used to keep track of whose turn it is
-let currentPlayer = 0;
+let currentPlayer = 1;
 
 let ringVals = [
   [
@@ -94,7 +94,7 @@ function gameSetup() {
     players.push(i);
     pieces.push([3, 3, 3]);
   }
-  currentPlayer = 0;
+  currentPlayer = 1;
 
   result = null;
 }
@@ -155,7 +155,7 @@ function setup() {
   radio.option('random');
   radio.option('minimax');
   radio.option('logical');
-  radio.selected('logical');
+  radio.selected('minimax');
 }
 
 function playPause() {
@@ -289,7 +289,7 @@ function newGame() {
 }
 
 function equals3(a, b, c) {
-  return (a != '0' && a == b && b == c);
+  return (a != 0 && a == b && b == c);
 }
 
 function checkWinner(wentHere, otrio_board) { 
@@ -582,8 +582,9 @@ function nextTurn() {
   }
 
   else if (radio.selected() == 'minimax') {
-    minimax_calls = [0, 0, 0, 0];
-    let bestSpot = null;
+    minimax_calls = [0, 0, 0, 0, 0, 0, 0, 0];
+    // available = shuffle(available);
+    let bestSpot;
     let bestScore = -Number.MIN_VALUE;
     // let available = availableSpots(otrio_board);
     for (let i = 0; i < available.length; i++) {
@@ -591,11 +592,13 @@ function nextTurn() {
         let board_copy = otrio_board.concat(); // call concat with no args to make a copy
         board_copy[available[i]] = players[currentPlayer];
         let pieces_copy = deepCopy2DArray(pieces);
-        pieces_copy[currentPlayer][floor(spot / 9)]--;
+        pieces_copy[currentPlayer][floor(available[i] / 9)]--;
         let turn = (currentPlayer + 1) % players.length;
+        // console.log("Pre-minimax board_copy : " + board_copy);
         let score = minimax(available[i], board_copy, pieces_copy, turn, currentPlayer, 4, -Number.MAX_VALUE, Number.MAX_VALUE);
+        // console.log("Post-minimax board_copy: " + board_copy);
         if (score > bestScore) {
-          console.log(board_copy);
+          // console.log(board_copy);
           console.log("With new score: " + score + " replaced: " + bestScore);
           bestScore = score;
           console.log("New bestSpot is: " + available[i] + " better than: " + bestSpot);
@@ -603,7 +606,7 @@ function nextTurn() {
         }
       }
     }
-    // print('minimax calls at each depth: ' + minimax_calls);
+    print('minimax calls at each depth: ' + minimax_calls);
 
     spot = bestSpot;
     let piece = floor(spot / 9);
