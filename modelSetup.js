@@ -14,9 +14,9 @@
 
 const options = {
 	// inputs: ['board'],
- //  	outputs: ['score'],
+  	// outputs: ['score'],
   	task: 'regression', // or 'classification'
-  	debug: true,
+  	debug: true
   	// learningRate: 0.2
   	// hiddenUnits: 27
  //  	layers: [
@@ -35,8 +35,8 @@ const options = {
 nn = ml5.neuralNetwork(options);
 
 // loading data
-// nn.loadData('data.json');
-// console.log('data loaded');
+nn.loadData('data.json');
+console.log('data loaded');
 
 // loading previous state of model
 const modelInfo = {
@@ -44,9 +44,9 @@ const modelInfo = {
   metadata: 'model/model_meta.json',
   weights: 'model/model.weights.bin',
 };
-nn.load(modelInfo, modelLoadedCallback);
+// nn.load(modelInfo, modelLoadedCallback);
 
 function modelLoadedCallback() {
-	// console.log('model loaded');
+	console.log('model loaded');
 }
 

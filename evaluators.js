@@ -89,21 +89,28 @@ function eval1(board, p) {
     (xinaRow(board[6],board[15],board[24],p)) + 
     (xinaRow(board[7],board[16],board[25],p)) + 
     (xinaRow(board[8],board[17],board[26],p)) + 
-    // horizontal diagonals
+    // z-diagonals
+    (xinaRow(board[0],board[4],board[8],p)) + 
+    (xinaRow(board[2],board[4],board[6],p)) + 
+    (xinaRow(board[9],board[13],board[17],p)) +
+    (xinaRow(board[11],board[13],board[15],p)) + 
+    (xinaRow(board[18],board[22],board[26],p)) + 
+    (xinaRow(board[20],board[22],board[24],p)) +
+    // y-diagonals
     (xinaRow(board[0],board[10],board[20],p)) + 
     (xinaRow(board[3],board[13],board[23],p)) + 
     (xinaRow(board[6],board[16],board[26],p)) +
     (xinaRow(board[18],board[10],board[2],p)) + 
     (xinaRow(board[21],board[13],board[5],p)) + 
     (xinaRow(board[24],board[16],board[8],p)) +
-    // vertical diagonals
+    // x-diagonals
     (xinaRow(board[0],board[12],board[24],p)) + 
     (xinaRow(board[1],board[13],board[25],p)) + 
     (xinaRow(board[2],board[14],board[26],p)) +
     (xinaRow(board[18],board[12],board[6],p)) + 
     (xinaRow(board[19],board[13],board[7],p)) + 
     (xinaRow(board[20],board[14],board[8],p)) +
-    // x-cross diagonals
+    // 3D-cross diagonals
     (xinaRow(board[0],board[13],board[26],p)) + 
     (xinaRow(board[18],board[13],board[8],p)) + 
     (xinaRow(board[2],board[13],board[24],p)) + 
