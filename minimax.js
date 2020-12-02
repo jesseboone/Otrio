@@ -36,8 +36,6 @@ function evaluate(lastSpot, board, pieces, player) {
   // nn.predict(board.concat(), useResults);
   // evalfunval = traditionalEval(lastSpot, board, players[player]);
   evalfunval = eval1(board, players[player]);
-  // if ((evalfunval == 0) && (lastSpot == 13)) return 1;
-  // console.log("Score: " + evalfunval);
   return evalfunval;
 
 

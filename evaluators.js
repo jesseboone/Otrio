@@ -1,6 +1,7 @@
 // console.log("evaluators.js");
 
 function sum3(a, b, c) {
+  // 
   return (a + b + c);
 }
 
@@ -54,7 +55,6 @@ function xinaRow(a, b, c, p) {
   else return 0;
 }
 
-// works alright when depth of minimax = 0, after that it gets weird
 function eval1(board, p) {
   let sum = 0;
   // board[wentHere] = p; // already done by minimax
@@ -120,6 +120,7 @@ function eval1(board, p) {
 }
 
 function potentialWin(a, b, p) {
+  // 
   return( ((a==0) && (b==p)) || ((b==0) && (a==p)) );
 }
 

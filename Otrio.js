@@ -7,8 +7,10 @@ console.log('ml5 version:', ml5.version);
 
 // to keep track of random play wins
 let wins_ties = [0,0];
+let lgcl_mnmx = [0,0];
 let fMwins = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-let minimax_depth = 3;
+let minimax_depth = 2;
+let numGames = 10;
 let fM = 0;
 let forceMoves = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
 let boards = [
@@ -35,7 +37,7 @@ let otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 let players = [1, 2];
 
 // to keep track of play/pause state
-let playing = 0;
+let playing = 1;
 
 // each default player's pieces
 let pieces = [
@@ -48,8 +50,9 @@ let centerXs;
 let centerYs;
 
 // used to keep track of whose turn it is
+let startingPlayer = 0;
 let currentPlayer = 0;
-console.log("First Player this round: " + players[currentPlayer]);
+// console.log("First Player this round: " + players[currentPlayer]);
 
 
 let ringVals = [
@@ -90,8 +93,8 @@ let radio; // <input> element for selecting AI strategy
 // }
 
 function gameSetup() {
-  playing = 1; // DELETE THIS LATER
 
+  // Normal gameSetup
   otrio_board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   last4moves = [0,0,0,0,0]; // probably don't even need this since you can't win in under 3 moves but just in case
   // remaking player and pieces arrays based on slider value
@@ -102,26 +105,32 @@ function gameSetup() {
     pieces.push([3, 3, 3]);
   }
 
-  // currentPlayer = (currentPlayer+1) % players.length;
-  // if (currentPlayer == 0) currentPlayer = 1;
-  // let place = 4;
-  if (fM<=26) {
-    currentPlayer = 0;
-    if (currentPlayer == 0) plyr = 'logical'; // Lavender Player (Player 1)
-    if (currentPlayer >= 1) plyr = 'minimax'; // Magenta Player (Player 2)
-    console.log("Player: " + plyr);
-    forceTurn(forceMoves[fM]);
-    console.log("Forced to start in spot: " + forceMoves[fM]);
-    fM+=1;
-  }
-  else {
-    playing = 0;
-    noLoop();
-  }
-  // radio.selected('random');
-  // nextTurn();
-  // if(otrio_board[13] != 0) console.log("First move was middle middle");
-  // nextTurn();
+  // Force moves 0-26 Setup
+        // if (fM<=26) {
+        //   // fM = 2;
+        //   currentPlayer = startingPlayer;
+        //   if (currentPlayer == 0) plyr = 'logical'; // Lavender Player (Player 1)
+        //   if (currentPlayer >= 1) plyr = 'minimax'; // Magenta Player (Player 2)
+        //   console.log("Player: " + plyr);
+        //   forceTurn(forceMoves[fM]);
+        //   console.log("Forced to start in spot: " + forceMoves[fM]);
+        //   fM+=1;
+        // }
+
+  // Random first move setup: 
+        // currentPlayer = startingPlayer;
+        // // console.log("Starting Player: " + startingPlayer);
+        // if (numGames > 0) {
+        //   radio.selected('random');
+        //   nextTurn();
+        // if(otrio_board[13] != 0) console.log("First move was middle middle");
+        //   numGames -= 1;
+        // }
+
+  // else {
+  //   playing = 0;
+  //   noLoop();
+  // }
   result = null;
 }
 
@@ -185,6 +194,7 @@ function setup() {
 }
 
 function playPause() {
+  //
   playing = (playing+1)%2;
 }
 
@@ -199,6 +209,7 @@ function trainModel() {
 }
 
 function whileTraining(epoch, loss) {
+  //
   console.log(epoch);
 }
 
@@ -315,6 +326,7 @@ function newGame() {
 }
 
 function equals3(a, b, c) {
+  //
   return (a != 0 && a == b && b == c);
 }
 
@@ -596,7 +608,6 @@ function forceTurn(i) {
   currentPlayer = (currentPlayer + 1) % players.length; // cycle through turns
 }
 
-// find random place to go
 function nextTurn() {
   let available = availableSpots(otrio_board);
   if (radio.selected() == 'random') {
@@ -742,8 +753,9 @@ function draw() {
     let plyr;
     if (result == 1) plyr = 'logical'; // Lavender Player (Player 1)
     if (result >= 2) plyr = 'minimax'; // Magenta Player (Player 2)
+    lgcl_mnmx[result-1] += 1;
     fMwins[fM-1] = result;
-    // currentPlayer = (currentPlayer+1) % players.length;
+    // startingPlayer = (startingPlayer+1) % players.length;
     console.log("Winner is: " + plyr);
     noLoop();
     resultP.style('font-size', '32pt');
@@ -754,20 +766,20 @@ function draw() {
     } else {
       resultP.html(`${result} wins!`);
       wins_ties[0]++;
-      saveBoards(result); // bring back to try NN again
+      // saveBoards(result); // bring back to try NN again
       newGame(); // uncomment to continue data Generation upon tie
     }
-  } else if (playing) {
-    // setTimeout(() => {   
-      if ((currentPlayer == 1) || (currentPlayer == 3)) { // calling radio for non human (0) player
-        radio.selected('minimax');
-        nextTurn();
-      }
-      else {
-        radio.selected('logical');
-        nextTurn(); }
-    // }, 5000);
-    // else noLoop(); // swap these two to go back to data Gen
-    // else nextTurn();
+  } 
+  else if (playing) {  
+    if (currentPlayer > 0) nextTurn();
+    // if ((currentPlayer == 1) || (currentPlayer == 3)) { // calling radio for non human (0) player
+    //   radio.selected('minimax');
+    //   nextTurn();
+    // }
+    // else {
+    //   radio.selected('logical');
+    //   nextTurn(); }
+    else noLoop(); // swap these two to go back to data Gen
+  // else nextTurn();
   }
 }
